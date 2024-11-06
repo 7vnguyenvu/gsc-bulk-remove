@@ -1,0 +1,22 @@
+{
+    "manifest_version": 3,
+    "name": "GSC - Bulk Removals",
+    "version": "1.0",
+    "icons": {
+        "512": "trash.png"
+    },
+    "permissions": [
+        "activeTab",
+        "scripting",
+        "storage"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "action": {
+        "default_popup": "popup.html"
+    },
+    "host_permissions": [
+        "https://search.google.com/u/*/search-console/removals?*"
+    ]
+}
