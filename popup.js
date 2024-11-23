@@ -38,7 +38,7 @@ async function removeUrl(e, t, r) {
     try {
         await click('div[role="button"].ZGldwb', t),
             await waitForm('div[aria-label="New Request"]', t),
-            await fillInput('input[placeholder="Enter URL"]', e, t),
+            await fillInput("input.VfPpkd-fmcmS-wGMbrd ", e, t),
             r && (await clickTypePrefix('div[data-value="yNQTT"]', t)),
             await click('div[role="button"].tWntE', t),
             await waitForm("div.Ka0n7d[aria-labelledby]", t),
