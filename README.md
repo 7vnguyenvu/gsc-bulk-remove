@@ -4,7 +4,7 @@
 ### Tải xuống và sử dụng:
 - Bước 1: Tải xuống tại 👉 [Extension](https://github.com/7vnguyenvu/gsc-bulk-remove/archive/refs/heads/main.zip)
 - Bước 2: Giải nén file
-- Bước 3: Mở trình duyệt và vào phần "Manager extensios" (Quản lý tiện ích)
+- Bước 3: Mở trình duyệt và vào phần "Manager extensios" (chrome://extensions)
 - Bước 4: Bật trạng thái cho nhà phát triển và load Folder vừa giải nén
 - Bước 5: Truy cập vào GSC -> Removals
 - Bước 6: Khởi động tiện ích -> Dán các url cần xoá vào tiện ích -> Nhấn nút "Start"
