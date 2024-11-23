@@ -1,7 +1,7 @@
 # GOOGLE SEARCH CONSOLE - BULK REMOVALS 
 📌 Tiện ích giải quyết vấn đề yêu cầu xoá url hàng loạt trên GSC ⚡
 
-### Tải xuống và sử dụng:
+### Tải xuống và sử dụng: [▶ Xem hướng dẫn trên YouTube](https://youtu.be/dZkCfoxTK0M)
 - Bước 1: Tải xuống tại 👉 [Extension](https://github.com/7vnguyenvu/gsc-bulk-remove/archive/refs/heads/main.zip)
 - Bước 2: Giải nén file
 - Bước 3: Mở trình duyệt và vào phần "Manager extensions" (chrome://extensions)
