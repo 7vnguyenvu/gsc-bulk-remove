@@ -138,16 +138,19 @@ async function removeUrl(url, activeTab, prefix) {
     let numErr = Number(uiError.innerText);
 
     try {
-        await clickButton("NEW REQUEST", activeTab); // Mở form xóa URL mới
+        // await clickButton("NEW REQUEST", activeTab); // Mở form xóa URL mới
+        await click('div[role="button"].ZGldwb', activeTab); // Mở form xóa URL mới
         await waitForm('div[aria-label="New Request"]', activeTab); // Đợi form hiển thị
         // await clickElement('span:contains("Temporarily remove URL")'); // Chọn loại xóa (tạm thời)
         await fillInput('input[placeholder="Enter URL"]', url, activeTab); // Nhập URL
         if (prefix) {
             await clickTypePrefix('div[data-value="yNQTT"]', activeTab); // Select type prefix
         }
-        await clickButton("NEXT", activeTab); // Nhấn nút Next
+        // await clickButton("NEXT", activeTab); // Nhấn nút Next
+        await click('div[role="button"].tWntE', activeTab); // Nhấn nút Next
         await waitForm("div.Ka0n7d[aria-labelledby]", activeTab); // Đợi form xác nhận hiển thị
-        await clickButton("SUBMIT REQUEST", activeTab); // Xác nhận xóa
+        // await clickButton("SUBMIT REQUEST", activeTab); // Xác nhận xóa
+        await click('div[role="button"][data-id="EBS5u"]', activeTab); // Xác nhận xóa
 
         // Kiểm tra song song cả thông báo thành công và trùng lặp
         const result = await Promise.race([
@@ -163,7 +166,8 @@ async function removeUrl(url, activeTab, prefix) {
         if (result === "duplicate") {
             uiError.innerText = numErr + 1;
             console.error(`Duplicate request for URL: ${url}`);
-            await clickButton("CLOSE", activeTab);
+            // await clickButton("CLOSE", activeTab);
+            await click('div[role="button"][data-id="EBS5u"]', activeTab);
         } else if (result === "success") {
             console.log(`Successfully requested removal for URL: ${url}`);
             uiDone.innerText = numDone + 1;
@@ -179,7 +183,8 @@ async function removeUrl(url, activeTab, prefix) {
         if (duplicate[0].result === true) {
             uiError.innerText = numErr + 1;
             console.error(`Duplicate request for URL: ${url}`);
-            await clickButton("CLOSE", activeTab);
+            // await clickButton("CLOSE", activeTab);
+            await click('div[role="button"][data-id="EBS5u"]', activeTab);
         } else {
             console.log(`Successfully requested removal for URL: ${url}`);
             uiDone.innerText = numDone + 1;
@@ -190,6 +195,22 @@ async function removeUrl(url, activeTab, prefix) {
     }
 }
 
+async function click(selector, activeTab) {
+    return await chrome.scripting.executeScript({
+        target: { tabId: activeTab.id },
+        func: (selector) => {
+            const element = document.querySelector(selector);
+            if (element) {
+                element.click();
+                return true; // Trả về true nếu click thành công
+            } else {
+                console.error(`Element with text "${text}" not found.`);
+                return false; // Trả về false nếu không tìm thấy
+            }
+        },
+        args: [selector],
+    });
+}
 async function clickButton(text, activeTab) {
     return await chrome.scripting.executeScript({
         target: { tabId: activeTab.id },
@@ -223,7 +244,6 @@ async function clickTypePrefix(selector, activeTab) {
         args: [selector],
     });
 }
-
 async function fillInput(selector, value, activeTab) {
     await chrome.scripting.executeScript({
         target: { tabId: activeTab.id },
