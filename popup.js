@@ -1,287 +1,175 @@
-const $ = (id) => document.getElementById(id);
-const delayInput = $("delay");
-const exactUrlType = $("exact-url");
-const prefixUrlType = $("prefix-url");
-const startBtn = $("removeUrls");
-const pauseBtn = $("pauseButton");
-const resumeBtn = $("resumeButton");
-const detailFocus = $("detailFocus");
-pauseBtn.disabled = true;
-resumeBtn.disabled = true;
-pauseBtn.style.display = "none";
-resumeBtn.style.display = "none";
-let delayValue = 0.7;
-let isPaused = false;
-let currentIndex = 0;
-
-delayInput.addEventListener("input", function (e) {
-    let value = parseFloat(e.target.value);
-    if (isNaN(value) || value < 0.1) {
-        e.target.value = 0.1;
-    } else {
-        delayValue = value;
-    }
-});
-
-startBtn.addEventListener("click", async () => {
-    $("done-url").innerText = 0;
-    $("error-url").innerText = 0;
-    const urlListTextarea = $("urlList");
-    const uiTotal = $("total-url");
-
-    const urls = urlListTextarea.value
-        .trim()
-        .split("\n")
-        .filter((url) => url.trim() !== "");
-
-    uiTotal.innerText = urls.length;
-
-    if (urls.length > 0) {
+const $ = (e) => document.getElementById(e),
+    delayInput = $("delay"),
+    exactUrlType = $("exact-url"),
+    prefixUrlType = $("prefix-url"),
+    startBtn = $("removeUrls"),
+    pauseBtn = $("pauseButton"),
+    resumeBtn = $("resumeButton"),
+    detailFocus = $("detailFocus");
+(pauseBtn.disabled = !0), (resumeBtn.disabled = !0), (pauseBtn.style.display = "none"), (resumeBtn.style.display = "none");
+let delayValue = 0.7,
+    isPaused = !1,
+    currentIndex = 0;
+async function removeUrls(e, t, r = !1) {
+    for (let n = currentIndex; n < e.length; n++) {
+        if (isPaused) return void (currentIndex = n);
         try {
-            const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-            if (tabs.length === 0) {
-                console.error("No active tab found");
-                return;
-            }
-
-            const activeTab = tabs[0];
-            // Kiểm tra xem tab hiện tại có phải là trang Search Console không
-            if (!activeTab.url.includes("search-console/removals?")) {
-                detailFocus.innerText = "⚠️ This is not a Google Search Console - Removals page!";
-                return;
-            }
-
-            // Reset the current index and paused state
-            startBtn.disabled = true;
-            pauseBtn.disabled = false;
-            pauseBtn.style.display = "inline-block";
-            currentIndex = 0;
-            isPaused = false;
-
-            // Gọi hàm
-            await removeUrls(urls, activeTab, prefixUrlType.checked);
-        } catch (error) {
-            console.error("Error:", error);
-        }
-    } else {
-        detailFocus.innerText = "⚠️ Enter urls first!";
-        console.error("No URLs provided");
-    }
-});
-
-// Pause
-pauseBtn.addEventListener("click", () => {
-    isPaused = true;
-    pauseBtn.disabled = true;
-    resumeBtn.disabled = false;
-    pauseBtn.style.display = "none";
-    resumeBtn.style.display = "inline-block";
-});
-
-// Resume
-resumeBtn.addEventListener("click", async () => {
-    isPaused = false;
-    pauseBtn.disabled = false;
-    resumeBtn.disabled = true;
-    pauseBtn.style.display = "inline-block";
-    resumeBtn.style.display = "none";
-
-    const urlListTextarea = document.getElementById("urlList");
-    const urls = urlListTextarea.value
-        .trim()
-        .split("\n")
-        .filter((url) => url.trim() !== "");
-
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    const activeTab = tabs[0];
-
-    // Resume the removal process from where it left off
-    await removeUrls(urls, activeTab);
-});
-
-async function removeUrls(urls, activeTab, prefixUrlType = false) {
-    for (let i = currentIndex; i < urls.length; i++) {
-        if (isPaused) {
-            currentIndex = i; // Save the current index
-            return; // Exit the function if paused
-        }
-
-        try {
-            detailFocus.innerText = `👉 ${urls[i]}`;
-            await removeUrl(urls[i], activeTab, prefixUrlType);
-            i < urls.length - 1 && (await sleep(delayValue * 700));
-        } catch (error) {
-            console.error(`Error removing URL ${urls[i]}:`, error);
+            (detailFocus.innerText = `👉 ${e[n]}`), await removeUrl(e[n], t, r), n < e.length - 1 && (await sleep(700 * delayValue));
+        } catch (t) {
+            console.error(`Error removing URL ${e[n]}:`, t);
         }
     }
     await handleDone();
 }
-
 async function handleDone() {
-    // Logic to handle completion of all URLs
-    console.log("All URLs processed");
-    // You can add UI updates or notifications here
-    startBtn.disabled = false;
-    pauseBtn.disabled = true;
-    resumeBtn.disabled = true;
-    pauseBtn.style.display = "none";
-    resumeBtn.style.display = "none";
-    detailFocus.innerHTML = `👌 Processing complete <i class="fa-solid fa-circle-check" style="color: #00ff00"></i>`;
+    console.log("All URLs processed"),
+        (startBtn.disabled = !1),
+        (pauseBtn.disabled = !0),
+        (resumeBtn.disabled = !0),
+        (pauseBtn.style.display = "none"),
+        (resumeBtn.style.display = "none"),
+        (detailFocus.innerHTML = '👌 Processing complete <i class="fa-solid fa-circle-check" style="color: #00ff00"></i>');
 }
-
-/////////////////////////////////////////////////////////////////////////
-
-async function removeUrl(url, activeTab, prefix) {
-    const uiDone = document.getElementById("done-url");
-    const uiError = document.getElementById("error-url");
-    let numDone = Number(uiDone.innerText);
-    let numErr = Number(uiError.innerText);
-
+async function removeUrl(e, t, r) {
+    const n = document.getElementById("done-url"),
+        a = document.getElementById("error-url");
+    let i = Number(n.innerText),
+        l = Number(a.innerText);
     try {
-        // await clickButton("NEW REQUEST", activeTab); // Mở form xóa URL mới
-        await click('div[role="button"].ZGldwb', activeTab); // Mở form xóa URL mới
-        await waitForm('div[aria-label="New Request"]', activeTab); // Đợi form hiển thị
-        // await clickElement('span:contains("Temporarily remove URL")'); // Chọn loại xóa (tạm thời)
-        await fillInput('input[placeholder="Enter URL"]', url, activeTab); // Nhập URL
-        if (prefix) {
-            await clickTypePrefix('div[data-value="yNQTT"]', activeTab); // Select type prefix
-        }
-        // await clickButton("NEXT", activeTab); // Nhấn nút Next
-        await click('div[role="button"].tWntE', activeTab); // Nhấn nút Next
-        await waitForm("div.Ka0n7d[aria-labelledby]", activeTab); // Đợi form xác nhận hiển thị
-        // await clickButton("SUBMIT REQUEST", activeTab); // Xác nhận xóa
-        await click('div[role="button"][data-id="EBS5u"]', activeTab); // Xác nhận xóa
-
-        // Kiểm tra song song cả thông báo thành công và trùng lặp
-        const result = await Promise.race([
-            waitForm("div.VcC8Fc", activeTab)
+        await click('div[role="button"].ZGldwb', t),
+            await waitForm('div[aria-label="New Request"]', t),
+            await fillInput('input[placeholder="Enter URL"]', e, t),
+            r && (await clickTypePrefix('div[data-value="yNQTT"]', t)),
+            await click('div[role="button"].tWntE', t),
+            await waitForm("div.Ka0n7d[aria-labelledby]", t),
+            await click('div[role="button"][data-id="EBS5u"]', t);
+        const o = await Promise.race([
+            waitForm("div.VcC8Fc", t)
                 .then(() => "success")
-                .catch(() => null), // Thông báo thành công
-            waitForm("div.EwFnZe[aria-labelledby]", activeTab)
+                .catch(() => null),
+            waitForm("div.EwFnZe[aria-labelledby]", t)
                 .then(() => "duplicate")
-                .catch(() => null), // Thông báo trùng lặp
+                .catch(() => null),
         ]);
-
-        // Xử lý kết quả ngay khi một trong hai hoàn tất
-        if (result === "duplicate") {
-            uiError.innerText = numErr + 1;
-            console.error(`Duplicate request for URL: ${url}`);
-            // await clickButton("CLOSE", activeTab);
-            await click('div[role="button"][data-id="EBS5u"]', activeTab);
-        } else if (result === "success") {
-            console.log(`Successfully requested removal for URL: ${url}`);
-            uiDone.innerText = numDone + 1;
-        } else {
-            console.error(`Unexpected error or timeout for URL: ${url}`);
-            uiError.innerText = numErr + 1;
-        }
-
-        const success = await waitForm("div.VcC8Fc", activeTab).catch(() => false);
-
-        // Đợi thông báo xử lý hoàn tất hoặc có thông báo lỗi
-        const duplicate = !success[0].result ? await waitForm("div.EwFnZe[aria-labelledby]", activeTab).catch(() => false) : null;
-        if (duplicate[0].result === true) {
-            uiError.innerText = numErr + 1;
-            console.error(`Duplicate request for URL: ${url}`);
-            // await clickButton("CLOSE", activeTab);
-            await click('div[role="button"][data-id="EBS5u"]', activeTab);
-        } else {
-            console.log(`Successfully requested removal for URL: ${url}`);
-            uiDone.innerText = numDone + 1;
-        }
-    } catch (error) {
-        console.error(`Failed to remove URL ${url}:`, error);
-        throw error;
+        "duplicate" === o
+            ? ((a.innerText = l + 1), console.error(`Duplicate request for URL: ${e}`), await click('div[role="button"][data-id="EBS5u"]', t))
+            : "success" === o
+            ? (console.log(`Successfully requested removal for URL: ${e}`), (n.innerText = i + 1))
+            : (console.error(`Unexpected error or timeout for URL: ${e}`), (a.innerText = l + 1));
+        const c = await waitForm("div.VcC8Fc", t).catch(() => !1);
+        !0 === (c[0].result ? null : await waitForm("div.EwFnZe[aria-labelledby]", t).catch(() => !1))[0].result
+            ? ((a.innerText = l + 1), console.error(`Duplicate request for URL: ${e}`), await click('div[role="button"][data-id="EBS5u"]', t))
+            : (console.log(`Successfully requested removal for URL: ${e}`), (n.innerText = i + 1));
+    } catch (t) {
+        throw (console.error(`Failed to remove URL ${e}:`, t), t);
     }
 }
-
-async function click(selector, activeTab) {
+async function click(e, t) {
     return await chrome.scripting.executeScript({
-        target: { tabId: activeTab.id },
-        func: (selector) => {
-            const element = document.querySelector(selector);
-            if (element) {
-                element.click();
-                return true; // Trả về true nếu click thành công
-            } else {
-                console.error(`Element with text "${text}" not found.`);
-                return false; // Trả về false nếu không tìm thấy
-            }
+        target: { tabId: t.id },
+        func: (e) => {
+            const t = document.querySelector(e);
+            return t ? (t.click(), !0) : (console.error(`Element with text "${text}" not found.`), !1);
         },
-        args: [selector],
+        args: [e],
     });
 }
-async function clickButton(text, activeTab) {
+async function clickButton(e, t) {
     return await chrome.scripting.executeScript({
-        target: { tabId: activeTab.id },
-        func: (text) => {
-            const element = Array.from(document.querySelectorAll('div[role="button"]')).find((el) => el.innerText.includes(text));
-            if (element) {
-                element.click();
-                return true; // Trả về true nếu click thành công
-            } else {
-                console.error(`Element with text "${text}" not found.`);
-                return false; // Trả về false nếu không tìm thấy
-            }
+        target: { tabId: t.id },
+        func: (e) => {
+            const t = Array.from(document.querySelectorAll('div[role="button"]')).find((t) => t.innerText.includes(e));
+            return t ? (t.click(), !0) : (console.error(`Element with text "${e}" not found.`), !1);
         },
-        args: [text],
+        args: [e],
     });
 }
-async function clickTypePrefix(selector, activeTab) {
+async function clickTypePrefix(e, t) {
     return await chrome.scripting.executeScript({
-        target: { tabId: activeTab.id },
-        func: (selector) => {
-            const element = document.querySelector(selector);
-            console.log(element);
-            if (element) {
-                element.click();
-                return true; // Trả về true nếu click thành công
-            } else {
-                console.error(`Element with selector "${selector}" not found.`);
-                return false; // Trả về false nếu không tìm thấy
-            }
+        target: { tabId: t.id },
+        func: (e) => {
+            const t = document.querySelector(e);
+            return console.log(t), t ? (t.click(), !0) : (console.error(`Element with selector "${e}" not found.`), !1);
         },
-        args: [selector],
+        args: [e],
     });
 }
-async function fillInput(selector, value, activeTab) {
+async function fillInput(e, t, r) {
     await chrome.scripting.executeScript({
-        target: { tabId: activeTab.id },
-        func: (selector, value) => {
-            const input = document.querySelector(selector); // Tìm input trong ngữ cảnh của tab
-            if (input) {
-                input.value = value;
-                input.dispatchEvent(new Event("input", { bubbles: true }));
-            } else {
-                console.error(`Element not found for selector: ${selector}`);
-            }
+        target: { tabId: r.id },
+        func: (e, t) => {
+            const r = document.querySelector(e);
+            r ? ((r.value = t), r.dispatchEvent(new Event("input", { bubbles: !0 }))) : console.error(`Element not found for selector: ${e}`);
         },
-        args: [selector, value], // Truyền các tham số cần thiết
+        args: [e, t],
     });
 }
-
-async function waitForm(selector, activeTab, timeout = 700) {
+async function waitForm(e, t, r = 700) {
     return await chrome.scripting.executeScript({
-        target: { tabId: activeTab.id },
-        func: (selector, timeout) => {
-            return new Promise((resolve, reject) => {
-                const startTime = Date.now();
-                const intervalId = setInterval(() => {
-                    const element = document.querySelector(selector);
-                    if (element) {
-                        clearInterval(intervalId);
-                        resolve(true);
-                    } else if (Date.now() - startTime > timeout) {
-                        clearInterval(intervalId);
-                        reject(new Error(`Timeout waiting for element: ${selector}`));
-                    }
-                }, timeout);
-            });
-        },
-        args: [selector, timeout],
+        target: { tabId: t.id },
+        func: (e, t) =>
+            new Promise((r, n) => {
+                const a = Date.now(),
+                    i = setInterval(() => {
+                        document.querySelector(e)
+                            ? (clearInterval(i), r(!0))
+                            : Date.now() - a > t && (clearInterval(i), n(new Error(`Timeout waiting for element: ${e}`)));
+                    }, t);
+            }),
+        args: [e, r],
     });
 }
-
-function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+function sleep(e) {
+    return new Promise((t) => setTimeout(t, e));
 }
+delayInput.addEventListener("input", function (e) {
+    let t = parseFloat(e.target.value);
+    isNaN(t) || t < 0.1 ? (e.target.value = 0.1) : (delayValue = t);
+}),
+    startBtn.addEventListener("click", async () => {
+        ($("done-url").innerText = 0), ($("error-url").innerText = 0);
+        const e = $("urlList"),
+            t = $("total-url"),
+            r = e.value
+                .trim()
+                .split("\n")
+                .filter((e) => "" !== e.trim());
+        if (((t.innerText = r.length), r.length > 0))
+            try {
+                const e = await chrome.tabs.query({ active: !0, currentWindow: !0 });
+                if (0 === e.length) return void console.error("No active tab found");
+                const t = e[0];
+                if (!t.url.includes("search-console/removals?"))
+                    return void (detailFocus.innerText = "⚠️ This is not a Google Search Console - Removals page!");
+                (startBtn.disabled = !0),
+                    (pauseBtn.disabled = !1),
+                    (pauseBtn.style.display = "inline-block"),
+                    (currentIndex = 0),
+                    (isPaused = !1),
+                    await removeUrls(r, t, prefixUrlType.checked);
+            } catch (e) {
+                console.error("Error:", e);
+            }
+        else (detailFocus.innerText = "⚠️ Enter urls first!"), console.error("No URLs provided");
+    }),
+    pauseBtn.addEventListener("click", () => {
+        (isPaused = !0),
+            (pauseBtn.disabled = !0),
+            (resumeBtn.disabled = !1),
+            (pauseBtn.style.display = "none"),
+            (resumeBtn.style.display = "inline-block");
+    }),
+    resumeBtn.addEventListener("click", async () => {
+        (isPaused = !1),
+            (pauseBtn.disabled = !1),
+            (resumeBtn.disabled = !0),
+            (pauseBtn.style.display = "inline-block"),
+            (resumeBtn.style.display = "none");
+        const e = document
+                .getElementById("urlList")
+                .value.trim()
+                .split("\n")
+                .filter((e) => "" !== e.trim()),
+            t = (await chrome.tabs.query({ active: !0, currentWindow: !0 }))[0];
+        await removeUrls(e, t);
+    });
