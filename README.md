@@ -8,7 +8,7 @@
 - Bước 4: Bật trạng thái cho nhà phát triển và load Folder vừa giải nén
 - Bước 5: Truy cập vào GSC -> Removals
 - Bước 6: Khởi động tiện ích -> Dán các url cần xoá vào tiện ích -> Nhấn nút "Start"
-- Bước 7: Rời khỏi bàn làm việc -> Pha 1 ly cà phể để nhâm nhi trong khi tiện ích đang xử lý 😉.
+- Bước 7: Rời khỏi bàn làm việc -> Pha 1 ly cà phê để nhâm nhi trong khi tiện ích đang xử lý 😉.
 
 > Lưu ý: Trong quá trình thực thi tiện ích
 >   1. Không thoát khỏi trình duyệt (Nên để treo trình duyệt trên màn hình)
